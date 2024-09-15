@@ -1,5 +1,5 @@
 """
-WSGI config for ecocyle project.
+WSGI config for ecocycle project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ecocyle.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ecocycle.settings')
 
 application = get_wsgi_application()
