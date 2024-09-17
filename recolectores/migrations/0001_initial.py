@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='Orden',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('estado', models.CharField(choices=[('pendiente', 'Pendiente'), ('Procesado', 'Procesado'), ('Cancelado', 'Cancelado')], default='pendiente', max_length=10)),
+                ('estado', models.CharField(choices=[('Pendiente', 'Pendiente'), ('Procesado', 'Procesado'), ('Cancelado', 'Cancelado')], default='pendiente', max_length=10)),
                 ('dni', models.CharField(max_length=8)),
                 ('material', models.CharField(max_length=100)),
                 ('cantidad', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(1)])),
