@@ -1,7 +1,6 @@
-# recolectores/urls.py
-from django.urls import path
-from .views import health_check
+from rest_framework.routers import DefaultRouter
+from .views import OrdenViewSet
 
-urlpatterns = [
-    path('health/', health_check, name='health_check'),
-]
+router = DefaultRouter()
+router.register(r'ordenes', OrdenViewSet, basename='orden')
+urlpatterns = router.urls
