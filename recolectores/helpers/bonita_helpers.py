@@ -2,7 +2,7 @@ import requests
 from decimal import Decimal
 
 # Base URL y credenciales
-base_url = "http://192.168.0.224:8080/bonita" #Si usan docker quizas en vez de localhost usen la ip de la maquina
+base_url = "http://localhost:8080/bonita" #Si usan docker quizas en vez de localhost usen la ip de la maquina
 username = "walter.bates"
 password = "bpm"
 
