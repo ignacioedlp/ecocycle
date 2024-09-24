@@ -30,6 +30,6 @@ urlpatterns = [
 
     # Include recolectores app urls
     path('api/recolectores/', include('recolectores.api.urls')),
-    path("index/", views.index, name="index"),
-    path("api/nueva-orden", views.nueva_orden, name="nueva_order")
+    path("", views.index, name="index"),
+    path("recolectores/nueva-orden", views.nueva_orden, name="nueva_order")
 ]
