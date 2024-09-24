@@ -44,7 +44,7 @@ class Orden(models.Model):
     dni = models.CharField(max_length=8)
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     case_bonita_id = models.CharField(max_length=100, blank=True, null=True)
-    deposito = models.ForeignKey(DepositoComunal, on_delete=models.CASCADE, blank=True, null=True)
+    deposito = models.ForeignKey(DepositoComunal, on_delete=models.CASCADE)
     cantidad_inicial = models.DecimalField(
         max_digits=10,
         decimal_places=2,
