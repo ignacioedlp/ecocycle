@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from recolectores import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,5 +29,7 @@ urlpatterns = [
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     # Include recolectores app urls
-    path('api/recolectores/', include('recolectores.api.urls'))
+    path('api/recolectores/', include('recolectores.api.urls')),
+    path("", views.index, name="index"),
+    path("recolectores/nueva-orden", views.nueva_orden, name="nueva_order")
 ]
