@@ -3,7 +3,7 @@ from decimal import Decimal
 import os
 
 # Base URL y credenciales
-base_url = os.environ.get('BONITA_BASE_URL', 'http://localhost:8080/bonita')
+base_url = 'http://192.168.0.92:8080/bonita'
 username = os.environ.get('BONITA_USERNAME', 'walter.bates')
 password = os.environ.get('BONITA_PASS', 'bpm')
 
