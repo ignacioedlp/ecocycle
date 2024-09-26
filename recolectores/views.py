@@ -60,9 +60,6 @@ def nueva_orden(request):
             # Guardar directamente el formulario y obtener la orden
             orden = form.save()
 
-            # Almacenar la orden en el decorador para uso posterior
-            nueva_orden.orden = orden
-
             # Procesar la orden en Bonita
             procesar_bonita(request, orden)
             

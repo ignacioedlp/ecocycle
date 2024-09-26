@@ -1,10 +1,11 @@
 import requests
 from decimal import Decimal
+import os
 
 # Base URL y credenciales
-base_url = "http://localhost:8080/bonita" #Si usan docker quizas en vez de localhost usen la ip de la maquina
-username = "walter.bates"
-password = "bpm"
+base_url = 'http://192.168.0.92:8080/bonita'
+username = os.environ.get('BONITA_USERNAME', 'walter.bates')
+password = os.environ.get('BONITA_PASS', 'bpm')
 
 # Funciones auxiliares
 def authenticate():
