@@ -31,7 +31,7 @@ urlpatterns = [
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     # Include recolectores app urls
-    path('api/recolectores/', include('recolectores.api.urls')),
+    path('api/v1/', include('recolectores.api.urls')),
     path("", views.index, name="index"),
     path("recolectores/nueva-orden", views.nueva_orden, name="nueva_order")
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
