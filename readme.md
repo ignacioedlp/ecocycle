@@ -10,9 +10,6 @@ docker compose build
 
 # Levantamos los servicios
 docker compose up
-
-# Realizamos las migraciones
-docker-compose run web python manage.py migrate
 ```
 ### Servicios
 - La aplicacion de Django

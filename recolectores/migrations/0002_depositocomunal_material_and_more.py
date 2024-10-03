@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='orden',
             name='deposito',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='recolectores.depositocomunal'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='recolectores.depositocomunal'),
         ),
         migrations.AlterField(
             model_name='orden',

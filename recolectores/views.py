@@ -50,8 +50,6 @@ def procesar_bonita(request, orden):
         # En caso de cualquier error, agregamos un mensaje de error
         messages.error(request, f"Error en el proceso de Bonita: {str(e)}")
 
-
-
 def nueva_orden(request):
     if request.method == "POST":
         form = OrderForm(request.POST)
@@ -59,9 +57,6 @@ def nueva_orden(request):
 
             # Guardar directamente el formulario y obtener la orden
             orden = form.save()
-
-            # Almacenar la orden en el decorador para uso posterior
-            nueva_orden.orden = orden
 
             # Procesar la orden en Bonita
             procesar_bonita(request, orden)
