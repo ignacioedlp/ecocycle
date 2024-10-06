@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from recolectores.models import Orden, Material, DepositoComunal
+from django.contrib.auth.models import User
 
 class OrdenCreateSerializer(serializers.ModelSerializer):
     material = serializers.PrimaryKeyRelatedField(
@@ -39,3 +40,9 @@ class MaterialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Material
         fields = ['id', 'name', 'hide']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'password', 'email']

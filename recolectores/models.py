@@ -21,6 +21,7 @@ class DepositoComunal(models.Model):
 
     def __str__(self):
         return self.name
+
 class Orden(models.Model):
     class Meta:
         db_table = 'ordenes'
