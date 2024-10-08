@@ -29,7 +29,7 @@ class OrdenListSerializer(serializers.ModelSerializer):
 class OrdenUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orden
-        fields = ['estado', 'dni', 'material', 'cantidad_inicial']
+        fields = ['cantidad_final']
 
 class DepositoComunalSerializer(serializers.ModelSerializer):
     class Meta:

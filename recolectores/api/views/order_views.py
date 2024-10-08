@@ -113,8 +113,17 @@ class OrdenViewSet(viewsets.ModelViewSet):
         description="Actualiza una orden en el sistema por su ID",
         tags=["Ordenes"]
     )
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):  
+        '''tomar la cantidad, actualizar la orden casi todo lo mismo que hace procesar bonita 
+        sin instanciar el proceso buscar actividad actual de ese caso
+        '''
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            orden = self.get_object()
+            serializer.update(orden, serializer.validated_data)
+            self.procesar_bonita_update(orden)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
 
     @extend_schema(
         summary="Eliminar una orden por ID",
@@ -123,3 +132,30 @@ class OrdenViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
+    def procesar_bonita_update(self, orden):
+        try:
+            # 1. Me autentico en Bonita
+            token, session_id = authenticate()
+
+            # 2. Agrego a la orden el caseId del proceso
+            case_id = orden.case_bonita_id 
+
+            # 3. Busco la actividad por caso
+            task_id = getTaskByCase(token, session_id, case_id)
+
+            # 4. Asigno las variables de la actividad
+            assignVariableByTaskAndCase(token, session_id, case_id, 'cantidad_final', int(orden.cantidad_final), 'java.lang.Integer')
+
+
+            # 5. Obtengo el userId del usuario por username
+            user_id = getUserIdByUsername(token, session_id)
+
+            # 6. Asigno la actividad al usuario
+            assignUserToTask(token, session_id, task_id, user_id)
+
+            # 7. Completo la actividad asi avanza el proceso
+            completeTask(token, session_id, task_id)
+
+        except Exception as e:
+            raise Exception(f"Error en el proceso de Bonita: {str(e)}")
