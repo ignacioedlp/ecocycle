@@ -53,12 +53,17 @@ class OrdenViewSet(viewsets.ModelViewSet):
             # Guardar la orden en la base de datos
             orden = serializer.save()
 
+            # Tomamos el user que esta authenticado y lo asignamos al recolector
+            orden.recolector = request.user
+            orden.save()
+
             # Procesar la orden en Bonita
             try:
                 self.procesar_bonita(orden)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response({
+                    "id": orden.id,
+                }, status=status.HTTP_201_CREATED)
             except Exception as e:
-                messages.error(request, f"Error en el proceso de Bonita: {str(e)}")
                 return Response({"detail": "Error en el proceso de Bonita"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -82,8 +87,9 @@ class OrdenViewSet(viewsets.ModelViewSet):
             task_id = getTaskByCase(token, session_id, case_id)
 
             # 6. Asigno las variables de la actividad
-            assignVariableByTaskAndCase(token, session_id, case_id, 'dni', orden.dni, 'java.lang.String')
+            assignVariableByTaskAndCase(token, session_id, case_id, 'recolector_id', orden.recolector.id, 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'material', orden.material.name, 'java.lang.String')
+            assignVariableByTaskAndCase(token, session_id, case_id, 'material_id', orden.material.id, 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'cantidad', int(orden.cantidad_inicial), 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'deposito', orden.deposito.name, 'java.lang.String')
             assignVariableByTaskAndCase(token, session_id, case_id, 'orden_id', orden.id, 'java.lang.Integer')
@@ -121,6 +127,9 @@ class OrdenViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             orden = self.get_object()
             serializer.update(orden, serializer.validated_data)
+            orden.empleado = request.user
+            orden.estado = Orden.PROCESADO
+            orden.save()
             self.procesar_bonita_update(orden)
             return Response(serializer.data, status=status.HTTP_200_OK)
         
@@ -145,8 +154,8 @@ class OrdenViewSet(viewsets.ModelViewSet):
             task_id = getTaskByCase(token, session_id, case_id)
 
             # 4. Asigno las variables de la actividad
+            assignVariableByTaskAndCase(token, session_id, case_id, 'empleado_id', int(orden.empleado.id), 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'cantidad_final', int(orden.cantidad_final), 'java.lang.Integer')
-
 
             # 5. Obtengo el userId del usuario por username
             user_id = getUserIdByUsername(token, session_id)

@@ -1,5 +1,5 @@
-from django.shortcuts import render
-from .forms import OrderForm
+from django.shortcuts import render, redirect
+from .forms import OrderForm, LoginForm
 from django.contrib import messages
 from .helpers.bonita_helpers import (
     authenticate, 
@@ -11,6 +11,10 @@ from .helpers.bonita_helpers import (
     assignUserToTask, 
     completeTask
 )
+from django.http import JsonResponse
+import requests
+from django.conf import settings
+
 
 def procesar_bonita(request, orden):
     try:
@@ -31,7 +35,8 @@ def procesar_bonita(request, orden):
         task_id = getTaskByCase(token, session_id, case_id)
 
         # 6. Asigno las variables de la actividad
-        assignVariableByTaskAndCase(token, session_id, case_id, 'dni', orden.dni, 'java.lang.String')
+        assignVariableByTaskAndCase(token, session_id, case_id, 'recolector_id', orden.recolector.id, 'java.lang.String')
+        assignVariableByTaskAndCase(token, session_id, case_id, 'material_id', orden.material.id, 'java.lang.Integer')
         assignVariableByTaskAndCase(token, session_id, case_id, 'material', orden.material.name, 'java.lang.String')
         assignVariableByTaskAndCase(token, session_id, case_id, 'cantidad', orden.cantidad_inicial, 'java.lang.Integer')
         assignVariableByTaskAndCase(token, session_id, case_id, 'deposito', orden.deposito.name, 'java.lang.String')
@@ -52,16 +57,25 @@ def procesar_bonita(request, orden):
 
 def nueva_orden(request):
     if request.method == "POST":
+        # verificar si el usuario authenticado tiene grupo de recolector
+        if not request.user.groups.filter(name='recolectores').exists():
+            messages.error(request, 'No tienes permisos para crear una orden.')
+            return render(request, "nueva_orden.html", {"form": OrderForm()})
+        
         form = OrderForm(request.POST)
         if form.is_valid():
 
             # Guardar directamente el formulario y obtener la orden
             orden = form.save()
 
+            # Obtener el usuario autenticado y asignarlo al recolector
+            orden.recolector = request.user
+            orden.save()
+
             # Procesar la orden en Bonita
             procesar_bonita(request, orden)
             
-            messages.success(request, 'La orden ha sido creada con éxito.')
+            messages.success(request, 'La orden ha sido creada con éxito, su # de orden es: ' + str(orden.id))
         else:
             messages.error(request, 'Hubo un error al crear la orden. Por favor, verifica los datos.')
     else:
@@ -71,3 +85,29 @@ def nueva_orden(request):
 
 def index(request):
     return render(request, "index.html")
+
+# Vista para el login
+def login(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            
+            # Enviar datos a la API de Django Rest Framework (DRF) para obtener el token
+            response = requests.post(
+                f'{settings.API_URL}/api/v1/login/',
+                data={'username': username, 'password': password}
+            )
+
+            if response.status_code == 200:
+                # Guardar token en sesión o manejarlo como desees
+                request.session['token'] = response.json()['access']
+                return redirect('home')  # Redirigir a una página de inicio o similar
+            else:
+                form.add_error(None, 'Invalid credentials')
+
+    else:
+        form = LoginForm()
+
+    return render(request, 'login.html', {'form': form})
