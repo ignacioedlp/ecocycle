@@ -12,7 +12,7 @@ class OrdenCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Orden
-        fields = ['dni', 'material', 'cantidad_inicial', 'deposito']
+        fields = ['material', 'cantidad_inicial', 'deposito']
 
     def validate_cantidad_inicial(self, value):
         if value < 1:
@@ -23,7 +23,7 @@ class OrdenCreateSerializer(serializers.ModelSerializer):
 class OrdenListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orden
-        fields = ['id', 'dni', 'material', 'cantidad_inicial', 'estado', 'case_bonita_id', 'created_at', 'updated_at']
+        fields = ['id', 'material', 'cantidad_inicial', 'estado', 'case_bonita_id', 'created_at', 'updated_at', 'recolector', 'empleado', 'deposito', 'cantidad_final']
 
 
 class OrdenUpdateSerializer(serializers.ModelSerializer):

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -42,7 +43,8 @@ class Orden(models.Model):
         default=PENDIENTE,
     )
 
-    dni = models.CharField(max_length=8)
+    recolector = models.ForeignKey(User, related_name='recolector', on_delete=models.CASCADE, blank=True, null=True)
+    empleado = models.ForeignKey(User, related_name='empleado', on_delete=models.CASCADE, blank=True, null=True)
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     case_bonita_id = models.CharField(max_length=100, blank=True, null=True)
     deposito = models.ForeignKey(DepositoComunal, on_delete=models.CASCADE)
@@ -57,5 +59,15 @@ class Orden(models.Model):
         blank=True,
         null=True
         )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class UserMaterial(models.Model):
+    class Meta:
+        db_table = 'fabricantes_materiales'
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    material = models.ForeignKey(Material, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -5,7 +5,7 @@ from .models import Material, DepositoComunal, Orden
 class OrderForm(forms.ModelForm):
     class Meta:
         model = Orden
-        fields = ['dni', 'material', 'cantidad_inicial', 'deposito']
+        fields = ['material', 'cantidad_inicial', 'deposito']
 
     material = forms.ModelChoiceField(
         queryset=Material.objects.filter(hide=False),
@@ -23,3 +23,7 @@ class OrderForm(forms.ModelForm):
         decimal_places=2,
         validators=[MinValueValidator(1)]
     )
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    password = forms.CharField(widget=forms.PasswordInput)
