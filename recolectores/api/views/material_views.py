@@ -3,7 +3,7 @@ from recolectores.models import Material
 from recolectores.api.serializers import MaterialSerializer
 from drf_spectacular.utils import extend_schema
 from recolectores.permissions import IsAdmin
-
+from rest_framework.permissions import AllowAny
 
 class MaterialViewSet(viewsets.ModelViewSet):
     queryset = Material.objects.filter(hide=False)
@@ -14,7 +14,11 @@ class MaterialViewSet(viewsets.ModelViewSet):
         """
         Asigna permisos basados en la acción. Por ejemplo, solo los admins pueden crear, actualizar o eliminar.
         """
-        permission_classes = [IsAdmin]
+        if self.action in ['list']:
+            permission_classes = [AllowAny]
+        else:
+            permission_classes = [IsAdmin]
+
         return [permission() for permission in permission_classes]
 
     @extend_schema(

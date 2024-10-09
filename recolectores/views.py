@@ -56,28 +56,41 @@ def procesar_bonita(request, orden):
         messages.error(request, f"Error en el proceso de Bonita: {str(e)}")
 
 def nueva_orden(request):
-    if request.method == "POST":
-        # verificar si el usuario authenticado tiene grupo de recolector
-        if not request.user.groups.filter(name='recolectores').exists():
-            messages.error(request, 'No tienes permisos para crear una orden.')
-            return render(request, "nueva_orden.html", {"form": OrderForm()})
-        
+    token = request.session.get('token')  # Recuperar el JWT de la sesión
+
+    if not token:
+        return redirect('login')  # Redirige al login si no hay token
+    
+    api_url = f'{settings.API_URL}/api/v1/ordenes/'
+
+    if request.method == "POST":        
         form = OrderForm(request.POST)
         if form.is_valid():
 
-            # Guardar directamente el formulario y obtener la orden
-            orden = form.save()
+            data = {
+                'material': form.cleaned_data['material'],
+                'deposito': form.cleaned_data['deposito'],
+                'cantidad_inicial': form.cleaned_data['cantidad_inicial'],
+                'cantidad_final': form.cleaned_data.get('cantidad_final', None)
+            }
 
-            # Obtener el usuario autenticado y asignarlo al recolector
-            orden.recolector = request.user
-            orden.save()
+            headers = {
+                'Authorization': f'Bearer {token}',  # Incluimos el JWT en las cabeceras
+                'Content-Type': 'application/json',
+            }
 
-            # Procesar la orden en Bonita
-            procesar_bonita(request, orden)
-            
-            messages.success(request, 'La orden ha sido creada con éxito, su # de orden es: ' + str(orden.id))
+            # Enviar la petición POST para crear la orden
+            response = requests.post(api_url, json=data, headers=headers)
+
+            if response.status_code == 201:
+                # Orden creada con éxito, redirigir o mostrar mensaje de éxito
+                messages.success(request, 'La orden ha sido creada con éxito, su # de orden es: ' + str(response.json()['id']))
+            else:
+                # Mostrar errores si la creación falla
+                form.add_error(None, 'Error al crear la orden.')
         else:
-            messages.error(request, 'Hubo un error al crear la orden. Por favor, verifica los datos.')
+            # Mostrar errores de validación del formulario
+            messages.error(request, 'Error al crear la orden.')
     else:
         form = OrderForm()
 
@@ -85,29 +98,3 @@ def nueva_orden(request):
 
 def index(request):
     return render(request, "index.html")
-
-# Vista para el login
-def login(request):
-    if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            
-            # Enviar datos a la API de Django Rest Framework (DRF) para obtener el token
-            response = requests.post(
-                f'{settings.API_URL}/api/v1/login/',
-                data={'username': username, 'password': password}
-            )
-
-            if response.status_code == 200:
-                # Guardar token en sesión o manejarlo como desees
-                request.session['token'] = response.json()['access']
-                return redirect('home')  # Redirigir a una página de inicio o similar
-            else:
-                form.add_error(None, 'Invalid credentials')
-
-    else:
-        form = LoginForm()
-
-    return render(request, 'login.html', {'form': form})
