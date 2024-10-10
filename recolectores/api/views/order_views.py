@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status
-from recolectores.models import Orden
+from recolectores.models import Orden, StockDeposito
 from recolectores.api.serializers import OrdenCreateSerializer, OrdenListSerializer, OrdenUpdateSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
@@ -92,6 +92,7 @@ class OrdenViewSet(viewsets.ModelViewSet):
             assignVariableByTaskAndCase(token, session_id, case_id, 'material_id', orden.material.id, 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'cantidad', int(orden.cantidad_inicial), 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'deposito', orden.deposito.name, 'java.lang.String')
+            assignVariableByTaskAndCase(token, session_id, case_id, 'deposito_id', orden.deposito.id, 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'orden_id', orden.id, 'java.lang.Integer')
 
             # 7. Obtengo el userId del usuario por username
@@ -130,6 +131,20 @@ class OrdenViewSet(viewsets.ModelViewSet):
             orden.empleado = request.user
             orden.estado = Orden.PROCESADO
             orden.save()
+
+            # Crear o actualizar el stock del deposito 
+            stock = StockDeposito.objects.filter(deposito=orden.deposito, material=orden.material).first()
+
+            if stock:
+                stock.cantidad += orden.cantidad_final
+                stock.save()
+            else:
+                StockDeposito.objects.create(
+                    deposito=orden.deposito,
+                    material=orden.material,
+                    cantidad=orden.cantidad_final
+                )
+
             self.procesar_bonita_update(orden)
             return Response(serializer.data, status=status.HTTP_200_OK)
         

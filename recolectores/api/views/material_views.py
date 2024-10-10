@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.response import Response
 from recolectores.models import Material
 from recolectores.api.serializers import MaterialSerializer
 from drf_spectacular.utils import extend_schema
@@ -60,4 +61,13 @@ class MaterialViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
+    def reservas(self, request, *args, **kwargs):
+        """
+        Devuelve una lista de todas las reservas pendientes asociadas a un material
+        """
+        material = self.get_object()
+        reservas = material.reservas.filter(estado='Pendiente')
+        serializer = ReservaListSerializer(reservas, many=True)
+        return Response(serializer.data)
     
