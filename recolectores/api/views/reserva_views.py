@@ -32,6 +32,14 @@ class ReservaViewSet(viewsets.ModelViewSet):
         return self.serializers.get(self.action, self.serializers['default'])
 
     @extend_schema(
+        summary="Obtener todas las reservas",
+        description="Devuelve una lista de todas las reservas en el sistema",
+        tags=["Reservas"]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+    
+    @extend_schema(
         summary="Crear una nueva reserva",
         description="Crea una nueva reserva en el sistema y la envía a Bonita para procesamiento",
         tags=["Reservas"]
@@ -84,7 +92,7 @@ class ReservaViewSet(viewsets.ModelViewSet):
 
             # 6. Asigno las variables de la actividad
             assignVariableByTaskAndCase(token, session_id, case_id, 'user_id', reserva.user.id, 'java.lang.Integer')
-            assignVariableByTaskAndCase(token, session_id, case_id, 'primera_vez', Boolean.valueOf(not existe), 'java.lang.Boolean')
+            assignVariableByTaskAndCase(token, session_id, case_id, 'primera_vez', 1 if not existe else 0, 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'material_id', reserva.material.id, 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'cantidad', int(reserva.cantidad), 'java.lang.Integer')
             assignVariableByTaskAndCase(token, session_id, case_id, 'reserva_id', reserva.id, 'java.lang.Integer')
@@ -100,3 +108,27 @@ class ReservaViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             raise Exception(f"Error en el proceso de Bonita: {str(e)}")
+
+    @extend_schema(
+        summary="Obtener un reserva por ID",
+        description="Devuelve los detalles de un reserva especificado por su ID",
+        tags=["Reservas"]
+    )
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Actualizar un reserva por ID",
+        description="Actualiza un reserva en el sistema por su ID",
+        tags=["Reservas"]
+    )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    @extend_schema(
+        summary="Cancelar un reserva por ID",
+        description="Cancelar una reserva en el sistema por su ID",
+        tags=["Reservas"]
+    )
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)

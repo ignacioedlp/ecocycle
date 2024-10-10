@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import dj_database_url
 from pathlib import Path
@@ -146,4 +147,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '0.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # Other settings
+}
+
+# JWT settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=100000),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
