@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Material, DepositoComunal, Orden, UserMaterial
+from .models import Material, DepositoComunal, Orden, UserMaterial, Reserva
 
 # Registro del modelo Material
 @admin.register(Material)
@@ -31,4 +31,11 @@ class UserMaterialAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'material', 'created_at', 'updated_at')
     search_fields = ('user__username', 'material__name')
     list_filter = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
+
+@admin.register(Reserva)
+class ReservaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'material','cantidad', 'estado', 'created_at', 'updated_at')
+    search_fields = ('user__username', 'material__name')
+    list_filter = ('estado', 'created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')

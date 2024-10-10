@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from recolectores.models import Orden, Material, DepositoComunal
+from recolectores.models import Orden, Material, DepositoComunal, Reserva
 from django.contrib.auth.models import User
 
 class OrdenCreateSerializer(serializers.ModelSerializer):
@@ -46,3 +46,24 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'password', 'email']
+
+
+class ReservaCreateSerializer(serializers.ModelSerializer):
+    material = serializers.PrimaryKeyRelatedField(
+        queryset=Material.objects.filter(hide=False)
+    )
+
+    class Meta:
+        model = Reserva
+        fields = ['material', 'cantidad']
+
+    def validate_cantidad(self, value):
+        if value < 1:
+            raise serializers.ValidationError("La cantidad debe ser al menos 1.")
+        return value
+
+
+class ReservaListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reserva
+        fields = ['id', 'material', 'cantidad', 'estado', 'case_bonita_id', 'created_at', 'updated_at', 'user']

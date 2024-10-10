@@ -71,3 +71,33 @@ class UserMaterial(models.Model):
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class Reserva(models.Model):
+    class Meta:
+        db_table = "reservas"
+
+    PENDIENTE = 'Pendiente'
+    PROCESADO = 'Procesado'
+    CANCELADO = 'Cancelado'
+
+    STATUS_CHOICES = [
+        (PENDIENTE, 'Pendiente'),
+        (PROCESADO, 'Procesado'),
+        (CANCELADO, 'Cancelado'),
+    ]
+
+    estado = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=PENDIENTE,
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    material = models.ForeignKey(Material, on_delete=models.CASCADE)
+    cantidad = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(1)])
+    case_bonita_id = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
