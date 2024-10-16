@@ -52,6 +52,7 @@ BASE_MIDDLEWARE = [
 
 LOCAL_MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'recolectores.middleware.AuthorizationMiddleware'
 ]
 
 MIDDLEWARE = BASE_MIDDLEWARE + LOCAL_MIDDLEWARE

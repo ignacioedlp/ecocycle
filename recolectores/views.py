@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from .forms import OrderForm, LoginForm
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .helpers.bonita_helpers import (
     authenticate, 
     getProcessId, 
@@ -14,6 +15,12 @@ from .helpers.bonita_helpers import (
 from django.http import JsonResponse
 import requests
 from django.conf import settings
+from recolectores.api.views.auth_views import CustomTokenObtainPairView
+from rest_framework.request import Request
+from rest_framework.test import APIRequestFactory
+from recolectores.permissions import IsRecolector
+from rest_framework.decorators import permission_classes
+from rest_framework.views import APIView
 
 
 def procesar_bonita(request, orden):
@@ -55,15 +62,24 @@ def procesar_bonita(request, orden):
         # En caso de cualquier error, agregamos un mensaje de error
         messages.error(request, f"Error en el proceso de Bonita: {str(e)}")
 
-def nueva_orden(request):
-    token = request.session.get('token')  # Recuperar el JWT de la sesión
 
-    if not token:
-        return redirect('login')  # Redirige al login si no hay token
-    
-    api_url = f'{settings.API_URL}/api/v1/ordenes/'
 
-    if request.method == "POST":        
+class NuevaOrdenView(APIView):
+
+    def get_permissions(self):
+        """
+        Asigna permisos basados en la acción. Por ejemplo, solo los admins pueden crear, actualizar o eliminar.
+        """
+        permission_classes = [IsRecolector]
+
+        return [permission() for permission in permission_classes]
+
+    def post(self, request, *args, **kwargs):
+        # Lógica de la vista aquí, ya con el permiso de "Recolector" aplicado
+        api_url = f'{settings.API_URL}/api/v1/ordenes/'
+
+        token = request.session['jwt_token']
+
         form = OrderForm(request.POST)
         if form.is_valid():
 
@@ -91,10 +107,50 @@ def nueva_orden(request):
         else:
             # Mostrar errores de validación del formulario
             messages.error(request, 'Error al crear la orden.')
-    else:
-        form = OrderForm()
+        return render(request, "nueva_orden.html", {"form": form})
 
-    return render(request, "nueva_orden.html", {"form": form})
+    def get(self, request, *args, **kwargs):
+        # Método para manejar la carga inicial de la página de la orden
+        form = OrderForm()
+        return render(request, "nueva_orden.html", {"form": form})
+
+def login(request):
+
+    api_url = f'{settings.API_URL}/api/v1/login/'
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            data = {
+                'username': form.cleaned_data['username'],
+                'password': form.cleaned_data['password'],
+            }
+
+            headers = {
+                'Content-Type': 'application/json',
+            }
+
+            # Crear una petición simulada de Django Rest Framework
+            factory = APIRequestFactory()
+            api_request = factory.post('/api/v1/login/', data, format='json')
+
+            # Simular una vista de DRF
+            custom_view = CustomTokenObtainPairView.as_view()
+            api_response = custom_view(api_request)
+
+            if api_response.status_code == 200:
+                # Autenticación exitosa, obtener el token JWT
+                data = api_response.data
+                token = data.get('access')
+                # Guardar el token en la sesión
+                request.session['jwt_token'] = token
+                # Sesión iniciada con éxito
+                messages.success(request, 'Inicio de sesión exitoso')
+            else:
+                # Mostrar errores si falla el inicio de sesión
+                form.add_error(None, 'Los datos ingresados son incorrectos')
+    else:
+        form = LoginForm()
+    return render(request, "login.html", {"form": form})
 
 def index(request):
     return render(request, "index.html")
