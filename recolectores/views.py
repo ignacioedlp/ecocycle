@@ -19,9 +19,11 @@ from recolectores.api.views.auth_views import CustomTokenObtainPairView
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 from recolectores.permissions import IsRecolector
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-from rest_framework.views import APIView
-
+from django.contrib.auth import authenticate, login
+import jwt
+from recolectores.models import User
 
 def procesar_bonita(request, orden):
     try:
@@ -62,57 +64,59 @@ def procesar_bonita(request, orden):
         # En caso de cualquier error, agregamos un mensaje de error
         messages.error(request, f"Error en el proceso de Bonita: {str(e)}")
 
+@permission_classes([IsAuthenticated, IsRecolector])
+def nueva_orden(request):
+    try:
+        token = request.session['jwt_token']
+        decoded_payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        
+        # Acceder a los datos del payload
+        user_id = decoded_payload.get('user_id') 
+        user = User.objects.get(id=user_id)
 
+        if not user.groups.filter(name='Recolector').exists():
+            messages.error(request, 'No tienes permiso para acceder a esta página.')
+            return redirect('login')  # Redirige al login o a una página de acceso denegado
 
-class NuevaOrdenView(APIView):
+        if not token:
+            return redirect('login')  # Redirige al login si no hay token
 
-    def get_permissions(self):
-        """
-        Asigna permisos basados en la acción. Por ejemplo, solo los admins pueden crear, actualizar o eliminar.
-        """
-        permission_classes = [IsRecolector]
-
-        return [permission() for permission in permission_classes]
-
-    def post(self, request, *args, **kwargs):
-        # Lógica de la vista aquí, ya con el permiso de "Recolector" aplicado
         api_url = f'{settings.API_URL}/api/v1/ordenes/'
 
-        token = request.session['jwt_token']
+        if request.method == "POST":        
+            form = OrderForm(request.POST)
+            if form.is_valid():
 
-        form = OrderForm(request.POST)
-        if form.is_valid():
+                data = {
+                    'material': form.cleaned_data['material'],
+                    'deposito': form.cleaned_data['deposito'],
+                    'cantidad_inicial': form.cleaned_data['cantidad_inicial'],
+                    'cantidad_final': form.cleaned_data.get('cantidad_final', None)
+                }
 
-            data = {
-                'material': form.cleaned_data['material'],
-                'deposito': form.cleaned_data['deposito'],
-                'cantidad_inicial': form.cleaned_data['cantidad_inicial'],
-                'cantidad_final': form.cleaned_data.get('cantidad_final', None)
-            }
+                headers = {
+                    'Authorization': f'Bearer {token}',  # Incluimos el JWT en las cabeceras
+                    'Content-Type': 'application/json',
+                }
 
-            headers = {
-                'Authorization': f'Bearer {token}',  # Incluimos el JWT en las cabeceras
-                'Content-Type': 'application/json',
-            }
+                # Enviar la petición POST para crear la orden
+                response = requests.post(api_url, json=data, headers=headers)
 
-            # Enviar la petición POST para crear la orden
-            response = requests.post(api_url, json=data, headers=headers)
-
-            if response.status_code == 201:
-                # Orden creada con éxito, redirigir o mostrar mensaje de éxito
-                messages.success(request, 'La orden ha sido creada con éxito, su # de orden es: ' + str(response.json()['id']))
+                if response.status_code == 201:
+                    # Orden creada con éxito, redirigir o mostrar mensaje de éxito
+                    messages.success(request, 'La orden ha sido creada con éxito, su # de orden es: ' + str(response.json()['id']))
+                else:
+                    # Mostrar errores si la creación falla
+                    form.add_error(None, 'Error al crear la orden.')
             else:
-                # Mostrar errores si la creación falla
-                form.add_error(None, 'Error al crear la orden.')
+                # Mostrar errores de validación del formulario
+                messages.error(request, 'Error al crear la orden.')
         else:
-            # Mostrar errores de validación del formulario
-            messages.error(request, 'Error al crear la orden.')
+            form = OrderForm()
         return render(request, "nueva_orden.html", {"form": form})
-
-    def get(self, request, *args, **kwargs):
-        # Método para manejar la carga inicial de la página de la orden
-        form = OrderForm()
-        return render(request, "nueva_orden.html", {"form": form})
+    except KeyError:
+        messages.error(request, 'No tienes permiso para acceder a esta página.')
+        return redirect('login')  # Redirige al login o a una página de acceso denegado
 
 def login(request):
 

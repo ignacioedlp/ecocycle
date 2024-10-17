@@ -34,5 +34,5 @@ urlpatterns = [
     path('api/v1/', include('recolectores.api.urls')),
     path("", views.index, name="index"),
     path('login/', views.login, name='login'),
-    path("recolectores/nueva-orden", views.NuevaOrdenView.as_view(), name="nueva_order"),
+    path("recolectores/nueva-orden", views.nueva_orden, name="nueva_order"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

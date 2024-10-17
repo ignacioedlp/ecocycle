@@ -50,6 +50,9 @@ BASE_MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usa la base de datos para sesiones
+SESSION_COOKIE_SECURE = False  # O True si estás usando HTTPS
+
 LOCAL_MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'recolectores.middleware.AuthorizationMiddleware'
