@@ -6,7 +6,10 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# STATIC_URL = '/recolectores/static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'recolectores/static'),
+]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -50,8 +53,12 @@ BASE_MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+#SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usa la base de datos para sesiones
+#SESSION_COOKIE_SECURE = False  # O True si estás usando HTTPS
+
 LOCAL_MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'recolectores.middleware.AuthorizationMiddleware'
 ]
 
 MIDDLEWARE = BASE_MIDDLEWARE + LOCAL_MIDDLEWARE
