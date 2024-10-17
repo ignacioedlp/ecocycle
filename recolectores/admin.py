@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Material, DepositoComunal, Orden, UserMaterial, Reserva, StockDeposito, OrdenDistribucion
+from .models import Material, DepositoComunal, NotificacionDiscrepancia, Orden, Pago, UserMaterial, Reserva, StockDeposito, OrdenDistribucion
 
 # Registro del modelo Material
 @admin.register(Material)
@@ -53,4 +53,16 @@ class OrdenDistribucionAdmin(admin.ModelAdmin):
     list_filter = ('created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')
 
+@admin.register(Pago)
+class PagoAdmin(admin.ModelAdmin):
+    list_display = ('id', 'orden__recolector', 'monto', 'created_at', 'updated_at')
+    search_fields = ('orden__recolector__username', 'monto')
+    list_filter = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
 
+@admin.register(NotificacionDiscrepancia)
+class NotificacionDiscrepanciaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'orden__recolector', 'created_at', 'updated_at')
+    search_fields = ('orden__recolector__username',)
+    list_filter = ('created_at', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')

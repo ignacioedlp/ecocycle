@@ -1,3 +1,5 @@
+from recolectores.api.views.pagos_views import PagosViewSet
+from recolectores.api.views.notificacion_views import NotificacionViewSet
 from rest_framework.routers import DefaultRouter
 from recolectores.api.views.order_views import OrdenViewSet
 from recolectores.api.views.material_views import MaterialViewSet
@@ -14,6 +16,8 @@ router.register(r'materiales', MaterialViewSet, basename='material')
 router.register(r'depositos-comunales', DepositoComunalViewSet, basename='deposito-comunal')
 router.register(r'reservas', ReservaViewSet, basename='reserva')
 router.register(r'ordenes-distribucion', OrdenDistribucionViewSet, basename='ordenes-distribucion')
+router.register(r'pagos', PagosViewSet, basename='pagos')
+router.register(r'notificacion-discrepancia',NotificacionViewSet, basename='notificacion-discrepancia')
 
 urlpatterns = router.urls
 

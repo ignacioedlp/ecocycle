@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from recolectores.models import Orden, Material, DepositoComunal, Reserva, OrdenDistribucion
+from recolectores.models import NotificacionDiscrepancia, Orden, Material, DepositoComunal, Pago, Reserva, OrdenDistribucion
 from django.contrib.auth.models import User
 
 class OrdenCreateSerializer(serializers.ModelSerializer):
@@ -87,3 +87,20 @@ class OrdenDistribucionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrdenDistribucion
         fields = ['deposito', 'material']
+
+class NotificacionDiscrepanciaSerializer(serializers.Serializer):
+    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
+    cantidad_final = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        model = NotificacionDiscrepancia
+        fields = ['orden', 'cantidad_final']
+    
+    def create(self, validated_data):
+        return NotificacionDiscrepancia.objects.create(**validated_data)
+
+class PagoSerializer(serializers.Serializer):
+    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
+    class Meta:
+        model = Pago
+        fields = ['id', 'monto', 'orden', 'pagado']
