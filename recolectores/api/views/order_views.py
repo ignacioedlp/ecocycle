@@ -59,7 +59,7 @@ class OrdenViewSet(viewsets.ModelViewSet):
 
             # Procesar la orden en Bonita
             try:
-                self.procesar_bonita(orden)
+                # self.procesar_bonita(orden) sin uso al final
                 return Response({
                     "id": orden.id,
                 }, status=status.HTTP_201_CREATED)
@@ -145,7 +145,7 @@ class OrdenViewSet(viewsets.ModelViewSet):
                     cantidad=orden.cantidad_final
                 )
 
-            self.procesar_bonita_update(orden)
+            # self.procesar_bonita_update(orden) // Sin uso
             return Response(serializer.data, status=status.HTTP_200_OK)
         
 

@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
-from recolectores.models import Material
+from recolectores.models import Material, UserMaterial
 from recolectores.api.serializers import MaterialSerializer
 from drf_spectacular.utils import extend_schema
 from recolectores.permissions import IsAdmin
@@ -70,4 +70,3 @@ class MaterialViewSet(viewsets.ModelViewSet):
         reservas = material.reservas.filter(estado='Pendiente')
         serializer = ReservaListSerializer(reservas, many=True)
         return Response(serializer.data)
-    
