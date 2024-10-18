@@ -1,5 +1,6 @@
 # custom command to create materials and depositos
 
+import random
 from django.core.management.base import BaseCommand
 from recolectores.models import Material, DepositoComunal
 
@@ -17,7 +18,7 @@ class Command(BaseCommand):
         ]
 
         for material in materials:
-            Material.objects.get_or_create(name=material)
+            Material.objects.get_or_create(name=material, precio=float(random.randint(1, 100)))
             self.stdout.write(self.style.SUCCESS(f'Material {material} created'))
 
         depositos = [

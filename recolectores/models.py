@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.contrib.auth.models import User
@@ -10,6 +11,12 @@ class Material(models.Model):
 
     name = models.CharField(max_length=100)
     hide = models.BooleanField(default=False)
+    precio = models.DecimalField(max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(1)],
+        null=True,
+        blank=True,
+        )
 
     def __str__(self):
         return self.name
@@ -138,5 +145,30 @@ class OrdenDistribucion(models.Model):
     deposito = models.ForeignKey(DepositoComunal, on_delete=models.CASCADE)
     reserva = models.ForeignKey(Reserva, on_delete=models.CASCADE)
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class NotificacionDiscrepancia(models.Model):
+    class Meta:
+        db_table = 'notificaciones_discrepancias'
+
+    orden = models.ForeignKey(Orden, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def cantidad_final(self):
+        return self.orden.cantidad_final
+    
+    @property
+    def diferencia(self):
+        return self.cantidad_final - self.orden.cantidad_inicial
+class Pago(models.Model):
+    class Meta:
+        db_table = 'pagos'
+    
+    monto = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    orden = models.ForeignKey(Orden, on_delete=models.CASCADE)
+    pagado = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
