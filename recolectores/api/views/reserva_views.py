@@ -62,7 +62,7 @@ class ReservaViewSet(viewsets.ModelViewSet):
                 if (not existe):
                     UserMaterial.objects.create(user = reserva.user, material = reserva.material)
 
-                self.procesar_bonita(reserva, existe)
+                # self.procesar_bonita(reserva, existe)
                 return Response({
                     "id": reserva.id,
                 }, status=status.HTTP_201_CREATED)
