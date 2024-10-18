@@ -1,13 +1,16 @@
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from recolectores.models import Pago
-from recolectores.api.serializers import PagoSerializer
+from recolectores.api.serializers import PagoSerializer, PagoCreateSerializer
 from drf_spectacular.utils import extend_schema
 from recolectores.permissions import IsAdmin, IsEmpleado, IsRecolector
 
 class PagosViewSet(viewsets.ModelViewSet):
     queryset = Pago.objects.all()
-    serializer_class = PagoSerializer
+    serializers = {
+        'default': PagoSerializer,
+        'create': PagoCreateSerializer,
+    }
     http_method_names = ['get', 'post', 'put', 'delete'] 
 
     def get_permissions(self):
@@ -22,6 +25,9 @@ class PagosViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdmin]
 
         return [permission() for permission in permission_classes]
+    
+    def get_serializer_class(self):
+        return self.serializers.get(self.action, self.serializers['default'])
 
     @extend_schema(
         summary="Obtener todos los pagos",
@@ -30,9 +36,9 @@ class PagosViewSet(viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         user = request.user
-        pagos = Pago.objects.filter(user=user)
-        serializer = PagoSerializer(pagos, many=True)
-        return Response(serializer.data)
+        pagos = Pago.objects.filter(orden__recolector=user)
+        serializer = self.get_serializer(pagos, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary="Crear un nuevo pago",
@@ -40,13 +46,15 @@ class PagosViewSet(viewsets.ModelViewSet):
         tags=["Pagos"]
     )
     def create(self, request, *args, **kwargs):
-        pago_serializer = PagoSerializer(data=request.data)
+        pago_serializer = self.get_serializer(data=request.data)
         pago_serializer.is_valid(raise_exception=True)
         orden = pago_serializer.validated_data['orden']
         monto = orden.cantidad_final * orden.material.precio
         pago = Pago.objects.create(orden=orden, monto=monto)
         pago.save()
-        return Response(PagoSerializer(pago).data)
+        return Response({
+            "detail": "Pago creado exitosamente."
+        }, status=status.HTTP_201_CREATED)
 
 
     @extend_schema(

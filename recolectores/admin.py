@@ -62,7 +62,7 @@ class PagoAdmin(admin.ModelAdmin):
 
 @admin.register(NotificacionDiscrepancia)
 class NotificacionDiscrepanciaAdmin(admin.ModelAdmin):
-    list_display = ('id', 'orden__recolector', 'created_at', 'updated_at')
+    list_display = ('id', 'orden__recolector', 'diferencia', 'created_at', 'updated_at')
     search_fields = ('orden__recolector__username',)
     list_filter = ('created_at', 'updated_at')
     readonly_fields = ('created_at', 'updated_at')

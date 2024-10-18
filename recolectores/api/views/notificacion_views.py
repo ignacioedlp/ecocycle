@@ -1,13 +1,17 @@
 from rest_framework.response import Response
 from rest_framework import viewsets, status
 from recolectores.models import  NotificacionDiscrepancia
-from recolectores.api.serializers import  NotificacionDiscrepanciaSerializer
+from recolectores.api.serializers import  NotificacionDiscrepanciaSerializer, NotificacionDiscrepanciaCreateSerializer
 from drf_spectacular.utils import extend_schema
 from recolectores.permissions import IsAdmin, IsEmpleado, IsRecolector
 
 class NotificacionViewSet(viewsets.ModelViewSet):
     queryset = NotificacionDiscrepancia.objects.all()
     serializer_class = NotificacionDiscrepanciaSerializer
+    serializers = {
+        'default': NotificacionDiscrepanciaSerializer,
+        'create': NotificacionDiscrepanciaCreateSerializer,
+    }
     http_method_names = ['get', 'post', 'put', 'delete'] 
 
     def get_permissions(self):
@@ -22,6 +26,9 @@ class NotificacionViewSet(viewsets.ModelViewSet):
             permission_classes = [IsAdmin]
 
         return [permission() for permission in permission_classes]
+    
+    def get_serializer_class(self):
+        return self.serializers.get(self.action, self.serializers['default'])
 
     @extend_schema(
         summary="Obtener todas las notificaciones",
@@ -30,9 +37,9 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         user = request.user
-        notificaciones = NotificacionDiscrepancia.objects.filter(user=user)
-        serializer = NotificacionDiscrepanciaSerializer(notificaciones, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        notificaciones_discrepancias = NotificacionDiscrepancia.objects.filter(orden__recolector=user)
+        serializer = self.get_serializer(notificaciones_discrepancias, many=True)
+        return  Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary="Crear una nueva notificación",
@@ -40,11 +47,16 @@ class NotificacionViewSet(viewsets.ModelViewSet):
         tags=["Notificaciones de Discrepancias"]
     )
     def create(self, request, *args, **kwargs):
-        serializer = NotificacionDiscrepanciaSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        # Aquí se pasa el usuario si es necesario
-        serializer.save(user=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer.save()
+
+        return Response({
+            "detail": "Notificacion de discrepancia creadas exitosamente."
+        }, status=status.HTTP_201_CREATED)
+
 
     @extend_schema(
         summary="Obtener una notificación de discrepancia por ID",
@@ -53,7 +65,7 @@ class NotificacionViewSet(viewsets.ModelViewSet):
     )
     def retrieve(self, request, *args, **kwargs):
         user = request.user
-        notificacion = NotificacionDiscrepancia.objects.get(id=kwargs['pk'], user=user)
+        notificacion = NotificacionDiscrepancia.objects.get(id=kwargs['pk'], orden__user=user)
         serializer = NotificacionDiscrepanciaSerializer(notificacion)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

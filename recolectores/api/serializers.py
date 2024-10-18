@@ -88,19 +88,28 @@ class OrdenDistribucionCreateSerializer(serializers.ModelSerializer):
         model = OrdenDistribucion
         fields = ['deposito', 'material']
 
-class NotificacionDiscrepanciaSerializer(serializers.Serializer):
+class NotificacionDiscrepanciaCreateSerializer(serializers.ModelSerializer):
     orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
-    cantidad_final = serializers.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         model = NotificacionDiscrepancia
         fields = ['orden', 'cantidad_final']
-    
-    def create(self, validated_data):
-        return NotificacionDiscrepancia.objects.create(**validated_data)
+
+class NotificacionDiscrepanciaSerializer(serializers.Serializer):
+    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
+
+    class Meta:
+        model = NotificacionDiscrepancia
+        fields = ['id', 'orden', 'cantidad_final', 'created_at', 'updated_at']
 
 class PagoSerializer(serializers.Serializer):
     orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
     class Meta:
         model = Pago
         fields = ['id', 'monto', 'orden', 'pagado']
+
+class PagoCreateSerializer(serializers.Serializer):
+    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
+    class Meta:
+        model = Pago
+        fields = ['orden']
