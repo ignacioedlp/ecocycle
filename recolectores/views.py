@@ -64,7 +64,6 @@ def procesar_bonita(request, orden):
         # En caso de cualquier error, agregamos un mensaje de error
         messages.error(request, f"Error en el proceso de Bonita: {str(e)}")
 
-@permission_classes([IsAuthenticated, IsRecolector])
 def nueva_orden(request):
     try:
         token = request.session['jwt_token']
@@ -149,6 +148,7 @@ def login(request):
                 request.session['jwt_token'] = token
                 # Sesión iniciada con éxito
                 messages.success(request, 'Inicio de sesión exitoso')
+                return redirect("home")
             else:
                 # Mostrar errores si falla el inicio de sesión
                 form.add_error(None, 'Los datos ingresados son incorrectos')
@@ -158,3 +158,7 @@ def login(request):
 
 def index(request):
     return render(request, "index.html")
+
+@permission_classes([IsAuthenticated])
+def home(request):
+    return render(request, "home.html")

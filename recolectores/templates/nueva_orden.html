@@ -8,20 +8,20 @@
     <title>Nueva orden</title>
 </head>
 <header>
-    <h1>Recycle</h1>
+    <h1>Ecocycle</h1>
 </header>
 <body>
     <div class="form-container">
         <h2>Nueva Orden</h2>
         {% if messages %}
-            <ul class="messages">
+            <div class="messages">
                 {% for message in messages %}
                     <li class="{% if message.tags %}{{ message.tags }}{% endif %}">
                         <span class="icon">{% if message.tags == 'error' %}❌{% elif message.tags == 'success' %}✅{% endif %}</span>
                         {{ message }}
                     </li>
                 {% endfor %}
-            </ul>
+            </div>
         {% endif %}
         <form action="" method="post">
             {% csrf_token %}

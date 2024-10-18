@@ -3,10 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <title>Bienvenido a Ecocycle</title>
+    <style>
+        /* Estilos generales del cuerpo */
+        body {
+            background-color: #A8D5BA; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Estilo del título */
+        h1 {
+            font-size: 3rem;
+            color: #126936;
+            margin-bottom: 30px;
+        }
+
+        /* Estilo del botón */
+        button {
+            background-color: #388E3C; 
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        /* Efecto hover y clic del botón */
+        button:hover {
+            background-color: #2E7D32; 
+        }
+
+        button:active {
+            transform: scale(0.98); 
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
 </head>
-<header>
-    <h1>Recycle</h1>
-</header>
+<body>
+
+    <div>
+        <h1>Bienvenido a Ecocycle</h1>
+        <a href="{% url 'login' %}">
+            <button name="login">Iniciar Sesión</button>
+        </a>
+    </div>
+
+</body>
+</html>
