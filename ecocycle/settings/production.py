@@ -12,6 +12,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = False
 
 ALLOWED_HOSTS = [ '*' ]
+CSRF_TRUSTED_ORIGINS = [ '*' ]
 
 DATABASES = {
     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
