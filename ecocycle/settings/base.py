@@ -35,6 +35,7 @@ BASE_APPS = [
     'drf_spectacular',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 LOCAL_APPS = [
@@ -44,6 +45,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS
 
 BASE_MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,6 +66,8 @@ LOCAL_MIDDLEWARE = [
 MIDDLEWARE = BASE_MIDDLEWARE + LOCAL_MIDDLEWARE
 
 ROOT_URLCONF = 'ecocycle.urls'
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 TEMPLATES = [
     {
