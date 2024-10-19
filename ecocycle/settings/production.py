@@ -16,6 +16,8 @@ CSRF_TRUSTED_ORIGINS = ['https://ecocycle-production.up.railway.app']
 
 API_URL = os.environ.get('API_URL')
 
+API_URL = os.environ.get('API_URL')
+
 DATABASES = {
     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
 }

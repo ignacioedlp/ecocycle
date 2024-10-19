@@ -1,5 +1,6 @@
 # custom command to create materials and depositos
 
+import random
 from django.core.management.base import BaseCommand
 from recolectores.models import Material, DepositoComunal
 

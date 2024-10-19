@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import dj_database_url
 from pathlib import Path
@@ -5,7 +6,10 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# STATIC_URL = '/recolectores/static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'recolectores/static'),
+]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -30,6 +34,8 @@ BASE_APPS = [
     'django.contrib.staticfiles',
     'drf_spectacular',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 LOCAL_APPS = [
@@ -39,6 +45,7 @@ LOCAL_APPS = [
 INSTALLED_APPS = BASE_APPS + LOCAL_APPS
 
 BASE_MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -48,13 +55,19 @@ BASE_MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+#SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usa la base de datos para sesiones
+#SESSION_COOKIE_SECURE = False  # O True si estás usando HTTPS
+
 LOCAL_MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'recolectores.middleware.AuthorizationMiddleware'
 ]
 
 MIDDLEWARE = BASE_MIDDLEWARE + LOCAL_MIDDLEWARE
 
 ROOT_URLCONF = 'ecocycle.urls'
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 TEMPLATES = [
     {
@@ -129,10 +142,13 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',  # Para respuestas en formato JSON
     ),
-    'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',  # Para permitir acceso público
-    ),
+        'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
 }
 
 
@@ -142,4 +158,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '0.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # Other settings
+}
+
+# JWT settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=100000),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
