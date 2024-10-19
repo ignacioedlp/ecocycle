@@ -18,7 +18,7 @@ class Command(BaseCommand):
         ]
 
         for material in materials:
-            Material.objects.get_or_create(name=material, precio=float(random.randint(1, 100)))
+            Material.objects.get_or_create(name=material)
             self.stdout.write(self.style.SUCCESS(f'Material {material} created'))
 
         depositos = [
