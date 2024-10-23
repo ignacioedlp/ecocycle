@@ -10,6 +10,7 @@ from recolectores.api.views.reserva_by_material import ReservaByMaterialView
 from recolectores.api.views.auth_views import CustomTokenObtainPairView, CustomTokenRefreshView, Register
 from recolectores.api.views.query_fabricante_material import QueryFabricanteMaterialView
 from recolectores.api.views.assign_fabricante_material import AssignFabricanteMaterialView
+from recolectores.api.views.create_orden_distribucion_reserva import CreateOrdenDistribucionReservaView
 from django.urls import path
 
 router = DefaultRouter()
@@ -31,4 +32,5 @@ urlpatterns += [
     path('material/<int:material_id>/reservas/', ReservaByMaterialView.as_view(), name='reservas-by-material'),
     path('material/<int:material_id>/query-fabricante/', QueryFabricanteMaterialView.as_view(), name='fabricantes-by-material'),
     path('material/<int:material_id>/assign-fabricante/', AssignFabricanteMaterialView.as_view(), name='assign-fabricante'),
+    path('reservas/<int:reserva_id>/generate-reserva/', CreateOrdenDistribucionReservaView.as_view(), name='generate-reserva'),
 ]
