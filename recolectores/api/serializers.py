@@ -113,3 +113,8 @@ class PagoCreateSerializer(serializers.Serializer):
     class Meta:
         model = Pago
         fields = ['orden']
+
+class CreateOrdenDistribucionReservaSerializer(serializers.Serializer):
+    deposito_id = serializers.IntegerField()
+    class Meta:
+        fields = ['deposito_id']
