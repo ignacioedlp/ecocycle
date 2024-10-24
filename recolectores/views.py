@@ -21,41 +21,41 @@ from rest_framework.test import APIRequestFactory
 from recolectores.permissions import IsRecolector
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
 import jwt
-from recolectores.models import User, DepositoComunal, Material
+from recolectores.models import User
 
-def procesar_bonita(self, token, recolector_id, material, cantidad, deposito):
+def procesar_bonita(token, recolector_id, material, cantidad, deposito):
         try:
             # 1. Me autentico en Bonita
-            token, session_id = authenticate()
+            token_bonita, session_id = authenticate()
 
             # 2. Obtengo el ID del proceso de la orden
-            process_id = getProcessId(token, session_id, 'Recoleccion')
+            process_id = getProcessId(token_bonita, session_id, 'Recoleccion')
 
             # 3. Instancio el proceso
-            case_id = initProcess(token, session_id, process_id)
+            case_id = initProcess(token_bonita, session_id, process_id)
 
             # 5. Busco la actividad por caso
-            task_id = getTaskByCase(token, session_id, case_id)
+            task_id = getTaskByCase(token_bonita, session_id, case_id)
 
             # 6. Asigno las variables de la actividad
-            assignVariableByTaskAndCase(token, session_id, case_id, 'recolector_id', recolector_id, 'java.lang.Integer')
-            assignVariableByTaskAndCase(token, session_id, case_id, 'material', material.name, 'java.lang.String')
-            assignVariableByTaskAndCase(token, session_id, case_id, 'material_id', material.id, 'java.lang.Integer')
-            assignVariableByTaskAndCase(token, session_id, case_id, 'cantidad', int(cantidad), 'java.lang.Integer')
-            assignVariableByTaskAndCase(token, session_id, case_id, 'deposito', deposito.name, 'java.lang.String')
-            assignVariableByTaskAndCase(token, session_id, case_id, 'deposito_id', deposito.id, 'java.lang.Integer')
-            assignVariableByTaskAndCase(token, session_id, case_id, 'token', token, 'java.lang.String')
+            assignVariableByTaskAndCase(token_bonita, session_id, case_id, 'recolector_id', recolector_id, 'java.lang.Integer')
+            assignVariableByTaskAndCase(token_bonita, session_id, case_id, 'material', material.name, 'java.lang.String')
+            assignVariableByTaskAndCase(token_bonita, session_id, case_id, 'material_id', material.id, 'java.lang.Integer')
+            assignVariableByTaskAndCase(token_bonita, session_id, case_id, 'cantidad', int(cantidad), 'java.lang.Integer')
+            assignVariableByTaskAndCase(token_bonita, session_id, case_id, 'deposito', deposito.name, 'java.lang.String')
+            assignVariableByTaskAndCase(token_bonita, session_id, case_id, 'deposito_id', deposito.id, 'java.lang.Integer')
+            assignVariableByTaskAndCase(token_bonita, session_id, case_id, 'token', token, 'java.lang.String')
 
             # 7. Obtengo el userId del usuario por username
-            user_id = getUserIdByUsername(token, session_id)
+            user_id = getUserIdByUsername(token_bonita, session_id)
 
             # 8. Asigno la actividad al usuario
-            assignUserToTask(token, session_id, task_id, user_id)
+            assignUserToTask(token_bonita, session_id, task_id, user_id)
 
             # 9. Completo la actividad asi avanza el proceso
-            completeTask(token, session_id, task_id)
+            completeTask(token_bonita, session_id, task_id)
 
         except Exception as e:
             raise Exception(f"Error en el proceso de Bonita: {str(e)}")
@@ -82,10 +82,8 @@ def nueva_orden(request):
         if request.method == "POST":        
             form = OrderForm(request.POST)
             if form.is_valid():
-                material = Material.objects.get(id=form.cleaned_data['material'])
-                deposito = DepositoComunal.objects.get(id=form.cleaned_data['deposito'])
-
-                procesar_bonita(token, user_id, material, form.cleaned_data['cantidad_inicial'], deposito)
+                
+                procesar_bonita(token, user_id, form.cleaned_data['material'], form.cleaned_data['cantidad_inicial'], form.cleaned_data['deposito'])
             else:
                 # Mostrar errores de validación del formulario
                 messages.error(request, 'Error al crear la orden.')

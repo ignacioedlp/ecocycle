@@ -34,6 +34,9 @@ class CreateOrdenDistribucionReservaView(APIView):
             if deposito is not None and stock is not None and stock.cantidad >= reserva.cantidad:
                 OrdenDistribucion.objects.create(reserva_id = reserva_id, deposito_id = deposito_id)
                 stock.cantidad -= reserva.cantidad
+                reserva.estado = Reserva.PROCESADO
+                reserva.save()
+                stock.save()
                 return Response({'success': 'Orden de distribucion creada'})
             else:
                 return Response({'error': 'El deposito no tiene stock suficiente para la reserva'})
