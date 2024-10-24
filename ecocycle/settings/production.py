@@ -12,6 +12,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = False
 
 ALLOWED_HOSTS = [ '*' ]
+CSRF_TRUSTED_ORIGINS = ['https://ecocycle-production.up.railway.app']
+
+API_URL = os.environ.get('API_URL')
 
 API_URL = os.environ.get('API_URL')
 
