@@ -86,11 +86,13 @@ class Reserva(models.Model):
     PENDIENTE = 'Pendiente'
     PROCESADO = 'Procesado'
     CANCELADO = 'Cancelado'
+    COMPLETADO = 'Completado'
 
     STATUS_CHOICES = [
         (PENDIENTE, 'Pendiente'),
         (PROCESADO, 'Procesado'),
         (CANCELADO, 'Cancelado'),
+        (COMPLETADO, 'Completado')
     ]
 
     estado = models.CharField(
@@ -101,6 +103,9 @@ class Reserva(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
+    deposito_encargado = models.ForeignKey(DepositoComunal, on_delete=models.SET_NULL, null=True)
+    fecha_prevista = models.DateTimeField(blank=True, null=True)
+    fecha_entrega = models.DateTimeField(blank=True, null=True)
     cantidad = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -120,31 +125,6 @@ class StockDeposito(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(1)]
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-class OrdenDistribucion(models.Model):
-    class Meta:
-        db_table = 'ordenes_distribucion'
-
-    PENDIENTE = 'Pendiente'
-    PROCESADO = 'Procesado'
-    CANCELADO = 'Cancelado'
-
-    STATUS_CHOICES = [
-        (PENDIENTE, 'Pendiente'),
-        (PROCESADO, 'Procesado'),
-        (CANCELADO, 'Cancelado'),
-    ]
-
-    estado = models.CharField(
-        max_length=10,
-        choices=STATUS_CHOICES,
-        default=PENDIENTE,
-    )
-    deposito = models.ForeignKey(DepositoComunal, on_delete=models.CASCADE)
-    reserva = models.ForeignKey(Reserva, on_delete=models.CASCADE)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
