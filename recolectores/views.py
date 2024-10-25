@@ -21,7 +21,6 @@ from rest_framework.test import APIRequestFactory
 from recolectores.permissions import IsRecolector
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
-from django.contrib.auth import authenticate
 import jwt
 from recolectores.models import User
 
