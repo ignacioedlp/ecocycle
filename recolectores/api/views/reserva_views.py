@@ -1,13 +1,133 @@
 from rest_framework import viewsets, status
-from recolectores.models import Reserva, UserMaterial
-from recolectores.api.serializers import ReservaCreateSerializer, ReservaListSerializer
+from recolectores.models import Reserva, DepositoComunal, StockDeposito, UserMaterial
+from recolectores.api.serializers import ReservaCreateSerializer, ReservaListSerializer, TakeReservaSerializer
 from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from recolectores.helpers.bonita_helpers import (
     authenticate, getProcessId, initProcess, getTaskByCase, 
     assignVariableByTaskAndCase, getUserIdByUsername, assignUserToTask, completeTask
 )
-from recolectores.permissions import IsAdmin, IsFabricante
+from recolectores.permissions import IsAdmin, IsFabricante, IsEmpleado
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from recolectores.models import Reserva, DepositoComunal, StockDeposito
+from django.utils import timezone
+from rest_framework.permissions import AllowAny
+from django.utils.dateparse import parse_date
+from rest_framework.exceptions import ValidationError
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+
+@extend_schema(
+    summary="Obtener las reservas pendientes para un material",
+    description="Obtener las reservas pendientes para un material",
+    tags=["Reservas"],
+    parameters=[
+        OpenApiParameter(
+            name="fecha_inicio",
+            description="Fecha de inicio del rango (formato YYYY-MM-DD)",
+            required=True,
+            type=OpenApiTypes.DATE
+        ),
+        OpenApiParameter(
+            name="fecha_fin",
+            description="Fecha de fin del rango (formato YYYY-MM-DD)",
+            required=True,
+            type=OpenApiTypes.DATE
+        ),
+    ]
+)
+class ReservaByMaterialView(APIView):
+    # Aplica el permission_classes a nivel de clase
+    permission_classes = [AllowAny]
+
+    # No necesitas @api_view en un método dentro de una APIView
+    def get(self, request, material_id):
+        reservas = Reserva.objects.filter(material__id=material_id, estado=Reserva.PENDIENTE)
+
+        fecha_inicio = request.query_params.get('fecha_inicio')
+        fecha_fin = request.query_params.get('fecha_fin')
+
+        if fecha_inicio or fecha_fin:
+            if fecha_inicio:
+                fecha_inicio = parse_date(fecha_inicio)
+                if not fecha_inicio:
+                    raise ValidationError({"fecha_inicio": "Formato de fecha inválido. Use YYYY-MM-DD."})
+                reservas = reservas.filter(fecha_prevista__gte=fecha_inicio)
+
+            if fecha_fin:
+                fecha_fin = parse_date(fecha_fin)
+                if not fecha_fin:
+                    raise ValidationError({"fecha_fin": "Formato de fecha inválido. Use YYYY-MM-DD."})
+                reservas = reservas.filter(fecha_prevista__lte=fecha_fin)
+
+        serializer = ReservaListSerializer(reservas, many=True)
+        return Response(serializer.data)
+
+
+@extend_schema(
+    summary="Toma una reserva concreata",
+    description="Toma una reserva concreata",
+    tags=["Reservas"]
+)
+class TakeReservaView(APIView):
+    permission_classes = [IsEmpleado]
+    serializer_class = TakeReservaSerializer
+
+    def post(self, request, reserva_id):
+        """
+        Toma una reserva para un deposito en especifico enviado por el body
+        """
+
+        deposito_id = request.data.get('deposito_id')
+        reserva = Reserva.objects.get(id = reserva_id)
+
+        if reserva is None or reserva.estado != 'Pendiente':
+            return Response({'error': 'La reserva no existe o ya fue procesada'})
+
+        if deposito_id is None:
+            return Response({'error': 'Debe enviar un deposito id'})
+        else:
+            deposito = DepositoComunal.objects.get(id = deposito_id)
+
+            if deposito is not None:
+                reserva.estado = Reserva.PROCESADO
+                reserva.deposito_encargado = deposito
+                reserva.save()
+                return Response({'success': 'La reserva fue tomada con exito'})
+    
+
+@extend_schema(
+    summary= "Se completa una reserva",
+    description= "Se completa una reserva",
+    tags=["Reservas"]
+)
+class CompleteReservaView(APIView):
+    permission_classes = [IsEmpleado]
+
+    def post(self, request, reserva_id):
+        """
+        Completar una reserva
+        """
+
+        reserva = Reserva.objects.get(id = reserva_id)
+
+        if reserva is None or reserva.estado != 'Procesado':
+            return Response({'error': 'La reserva no existe, no fue tomada o ya fue completada'})
+    
+
+        deposito = reserva.deposito_encargado
+        stock = StockDeposito.objects.filter(deposito = deposito, material = reserva.material).first()
+
+        if deposito is not None and stock is not None and stock.cantidad >= reserva.cantidad:
+            stock.cantidad -= reserva.cantidad
+            reserva.fecha_entrega = timezone.now()
+            reserva.estado = Reserva.COMPLETADO
+            reserva.save()
+            stock.save()
+            return Response({'success': 'Reserva completa con exito'})
+        else:
+            return Response({'error': 'El deposito no tiene stock suficiente para completar la reserva'})
     
 class ReservaViewSet(viewsets.ModelViewSet):
     queryset = Reserva.objects.all()
