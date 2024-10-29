@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from recolectores.models import NotificacionDiscrepancia, Orden, Material, DepositoComunal, Pago, Reserva, OrdenDistribucion
+from recolectores.models import NotificacionDiscrepancia, Orden, Material, DepositoComunal, Pago, Reserva
 from django.contrib.auth.models import User
 
 class OrdenCreateSerializer(serializers.ModelSerializer):
@@ -55,7 +55,7 @@ class ReservaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reserva
-        fields = ['material', 'cantidad']
+        fields = ['material', 'cantidad', 'fecha_prevista']
 
     def validate_cantidad(self, value):
         if value < 1:
@@ -66,27 +66,8 @@ class ReservaCreateSerializer(serializers.ModelSerializer):
 class ReservaListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reserva
-        fields = ['id', 'material', 'cantidad', 'estado', 'case_bonita_id', 'created_at', 'updated_at', 'user']
+        fields = ['id', 'material', 'cantidad', 'estado', 'case_bonita_id', 'created_at', 'updated_at', 'user', 'fecha_prevista', 'deposito_encargado']
 
-
-class OrdenDistribucionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrdenDistribucion
-        fields = ['id', 'reserva', 'deposito', 'estado', 'created_at', 'updated_at']
-
-
-class OrdenDistribucionCreateSerializer(serializers.ModelSerializer):
-    material = serializers.PrimaryKeyRelatedField(
-        queryset=Material.objects.filter(hide=False)
-    )
-
-    deposito = serializers.PrimaryKeyRelatedField(
-        queryset=DepositoComunal.objects.filter(hide=False)
-    )
-
-    class Meta:
-        model = OrdenDistribucion
-        fields = ['deposito', 'material']
 
 class NotificacionDiscrepanciaCreateSerializer(serializers.ModelSerializer):
     orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
@@ -114,7 +95,7 @@ class PagoCreateSerializer(serializers.Serializer):
         model = Pago
         fields = ['orden']
 
-class CreateOrdenDistribucionReservaSerializer(serializers.Serializer):
+class TakeReservaSerializer(serializers.Serializer):
     deposito_id = serializers.IntegerField()
     class Meta:
         fields = ['deposito_id']
