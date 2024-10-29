@@ -22,7 +22,7 @@ class OrdenViewSet(viewsets.ModelViewSet):
         """
         Asigna permisos basados en la acción. Por ejemplo, solo los admins pueden crear, actualizar o eliminar.
         """
-        if self.action in ['update', 'retrieve']:
+        if self.action in ['update', 'retrieve', 'list']:
             permission_classes = [IsEmpleado]
         elif self.action in ['create']:
             permission_classes = [IsRecolector]
