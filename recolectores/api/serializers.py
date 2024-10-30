@@ -12,7 +12,7 @@ class OrdenCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Orden
-        fields = ['material', 'cantidad_inicial', 'deposito']
+        fields = ['material', 'cantidad_inicial', 'deposito', "case_bonita_id"]
 
     def validate_cantidad_inicial(self, value):
         if value < 1:
