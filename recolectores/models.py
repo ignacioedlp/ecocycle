@@ -104,8 +104,8 @@ class Reserva(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     material = models.ForeignKey(Material, on_delete=models.CASCADE)
     deposito_encargado = models.ForeignKey(DepositoComunal, on_delete=models.SET_NULL, null=True)
-    fecha_prevista = models.DateTimeField(blank=True, null=True)
-    fecha_entrega = models.DateTimeField(blank=True, null=True)
+    fecha_prevista = models.DateField(blank=True, null=True)
+    fecha_entrega = models.DateField(blank=True, null=True)
     cantidad = models.DecimalField(
         max_digits=10,
         decimal_places=2,

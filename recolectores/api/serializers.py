@@ -55,7 +55,7 @@ class ReservaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reserva
-        fields = ['material', 'cantidad', 'fecha_prevista']
+        fields = ['material', 'cantidad', 'fecha_prevista', 'case_bonita_id']
 
     def validate_cantidad(self, value):
         if value < 1:
