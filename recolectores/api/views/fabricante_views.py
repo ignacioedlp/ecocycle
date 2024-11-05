@@ -1,18 +1,27 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from recolectores.models import UserMaterial
-from recolectores.api.serializers import ReservaListSerializer
-from drf_spectacular.utils import extend_schema
-from recolectores.permissions import IsFabricante
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
 
 @extend_schema(
     summary="Asignar un material a el fabricante",
     description="Asignar un material a el fabricante",
-    tags=["Fabricantes"]
+    tags=["Fabricantes"],
+    parameters=[
+        OpenApiParameter(
+            name="fabricante_username",
+            description="Fabricante",
+            required=True,
+            type=OpenApiTypes.STR
+        ),
+    ]
 )
 class AssignFabricanteMaterialView(APIView):
     # Aplica el permission_classes a nivel de clase
-    permission_classes = [IsFabricante]
+    permission_classes = [IsAuthenticated]
 
     # No necesitas @api_view en un método dentro de una APIView
     def get(self, request, material_id):
@@ -20,12 +29,16 @@ class AssignFabricanteMaterialView(APIView):
         Asigna un material a un fabricante
         """
 
-        fabricante = request.user
-        if fabricante is not None:
-            # si el material ya esta asignado el fabricante con el id material_id no se asigna
-            existe = UserMaterial.objects.filter(user_id = fabricante.id, material_id = material_id).exists()
+        fabricante_username = request.query_params.get('fabricante_username')
+        if fabricante_username is not None:
+            # Obtener el objeto User usando el username
+            fabricante = User.objects.filter(username=fabricante_username).first()
+            if fabricante is None:
+                return Response({'error': 'Fabricante no encontrado'}, status=404)
+
+            existe = UserMaterial.objects.filter(proveedor_id = fabricante.id, material_id = material_id).exists()
             if not existe:
-                UserMaterial.objects.create(user_id = fabricante.id, material_id = material_id)
+                UserMaterial.objects.create(proveedor_id = fabricante.id, material_id = material_id)
             return Response({'success': 'Material asignado a fabricante'})
         else:
             return Response({'error': 'Debe enviar un fabricante'})
@@ -33,11 +46,19 @@ class AssignFabricanteMaterialView(APIView):
 @extend_schema(
     summary="Consulta si un material esta asignado a el fabricante",
     description="Consulta si un material esta asignado a el fabricante",
-    tags=["Fabricantes"]
+    tags=["Fabricantes"],
+    parameters=[
+        OpenApiParameter(
+            name="fabricante_username",
+            description="Fabricante",
+            required=True,
+            type=OpenApiTypes.STR
+        ),
+    ]
 )
 class QueryFabricanteMaterialView(APIView):
     # Aplica el permission_classes a nivel de clase
-    permission_classes = [IsFabricante]
+    permission_classes = [IsAuthenticated]
 
     # No necesitas @api_view en un método dentro de una APIView
     def get(self, request, material_id):
@@ -45,9 +66,12 @@ class QueryFabricanteMaterialView(APIView):
         Devuelve un si un material esta asociado a un fabricante 1 si es la primera vez 0 si ya esta asignado
         """
 
-        fabricante = request.user
-        if fabricante is not None:
-            existe = UserMaterial.objects.filter(user_id = fabricante.id, material_id = material_id).exists()
+        fabricante_username = request.query_params.get('fabricante_username')
+        if fabricante_username is not None:
+            # Obtener el objeto User usando el username
+            fabricante = User.objects.filter(username=fabricante_username).first()
+            if fabricante is None:
+                return Response({'error': 'Fabricante no encontrado'}, status=404)
+
+            existe = UserMaterial.objects.filter(proveedor_id = fabricante.id, material_id = material_id).exists()
             return Response({'primera_vez': 1 if not existe else 0})
-        else:
-            return Response({'error': 'Debe enviar un fabricante'})
