@@ -38,7 +38,7 @@ class ReservaByMaterialView(APIView):
 
     # No necesitas @api_view en un método dentro de una APIView
     def get(self, request, material_id):
-        reservas = Reserva.objects.filter(material_id=material_id, estado=Reserva.PENDIENTE)
+        reservas = Reserva.objects.filter(material_id=material_id, estado__in=[Reserva.PENDIENTE, Reserva.PROCESADO])
 
         fecha_inicio = request.query_params.get('fecha_inicio')
         fecha_fin = request.query_params.get('fecha_fin')
@@ -111,7 +111,7 @@ class CompleteReservaView(APIView):
         deposito = reserva.deposito_encargado_id
 
         if deposito is not None:
-            reserva.fecha_entrega = timezone.now()
+            reserva.fecha_entrega = timezone.now().date()
             reserva.estado = Reserva.COMPLETADO
             reserva.save()
             return Response({'success': 'Reserva completa con exito'})
