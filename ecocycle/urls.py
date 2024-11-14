@@ -19,7 +19,6 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-from recolectores import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,7 +31,4 @@ urlpatterns = [
 
     # Include recolectores app urls
     path('api/v1/', include('recolectores.api.urls')),
-    path("", views.index, name="index"),
-    path('login/', views.login, name='login'),
-    path("recolectores/nueva-orden", views.nueva_orden, name="nueva_order"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

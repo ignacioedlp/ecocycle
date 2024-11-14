@@ -13,9 +13,6 @@ python manage.py init_admin --settings=ecocycle.settings.production
 echo "Create groups"
 python manage.py create_groups --settings=ecocycle.settings.production
 
-echo "Running seeds..."
-python manage.py create_materials_and_depositos --settings=ecocycle.settings.production
-
 # si no tengo PORT en mi entorno, asigno 8000
 if [ -z "$PORT" ]; then
   export PORT=8000

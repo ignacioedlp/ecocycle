@@ -1,47 +1,6 @@
 from rest_framework import serializers
-from recolectores.models import NotificacionDiscrepancia, Orden, Material, DepositoComunal, Pago, Reserva
+from recolectores.models import Reserva
 from django.contrib.auth.models import User
-
-class OrdenCreateSerializer(serializers.ModelSerializer):
-    material = serializers.PrimaryKeyRelatedField(
-        queryset=Material.objects.filter(hide=False)
-    )
-    deposito = serializers.PrimaryKeyRelatedField(
-        queryset=DepositoComunal.objects.filter(hide=False)
-    )
-
-    class Meta:
-        model = Orden
-        fields = ['material', 'cantidad_inicial', 'deposito']
-
-    def validate_cantidad_inicial(self, value):
-        if value < 1:
-            raise serializers.ValidationError("La cantidad inicial debe ser al menos 1.")
-        return value
-
-
-class OrdenListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Orden
-        fields = ['id', 'material', 'cantidad_inicial', 'estado', 'case_bonita_id', 'created_at', 'updated_at', 'recolector', 'empleado', 'deposito', 'cantidad_final']
-
-
-class OrdenUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Orden
-        fields = ['cantidad_final']
-
-class DepositoComunalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DepositoComunal
-        fields = ['id', 'name', 'hide']
-
-class MaterialSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Material
-        fields = ['id', 'name', 'hide']
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -49,53 +8,35 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ReservaCreateSerializer(serializers.ModelSerializer):
-    material = serializers.PrimaryKeyRelatedField(
-        queryset=Material.objects.filter(hide=False)
-    )
+    solicitante_username = serializers.CharField()  # Cambiado a campo de entrada
 
     class Meta:
         model = Reserva
-        fields = ['material', 'cantidad', 'fecha_prevista']
+        fields = ['material_id', 'cantidad', 'fecha_prevista', 'solicitante_username', 'case_bonita_id']  # Modificado
 
     def validate_cantidad(self, value):
         if value < 1:
             raise serializers.ValidationError("La cantidad debe ser al menos 1.")
         return value
 
+    def create(self, validated_data):
+        solicitante_username = validated_data.pop('solicitante_username')  # Obtener el username del validated_data
+        try:
+            user = User.objects.get(username=solicitante_username)  # Buscar el usuario por username
+        except User.DoesNotExist:
+            raise serializers.ValidationError("El usuario no existe.")  # Manejo de error si el usuario no se encuentra
+
+        reserva = Reserva.objects.create(solicitante=user, **validated_data)  # Asignar el usuario a la reserva
+        return reserva
 
 class ReservaListSerializer(serializers.ModelSerializer):
+    solicitante_username = serializers.CharField(source='solicitante.username', read_only=True)
+
     class Meta:
         model = Reserva
-        fields = ['id', 'material', 'cantidad', 'estado', 'case_bonita_id', 'created_at', 'updated_at', 'user', 'fecha_prevista', 'deposito_encargado']
-
-
-class NotificacionDiscrepanciaCreateSerializer(serializers.ModelSerializer):
-    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
-
-    class Meta:
-        model = NotificacionDiscrepancia
-        fields = ['orden', 'cantidad_final']
-
-class NotificacionDiscrepanciaSerializer(serializers.Serializer):
-    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
-
-    class Meta:
-        model = NotificacionDiscrepancia
-        fields = ['id', 'orden', 'cantidad_final', 'created_at', 'updated_at']
-
-class PagoSerializer(serializers.Serializer):
-    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
-    class Meta:
-        model = Pago
-        fields = ['id', 'monto', 'orden', 'pagado']
-
-class PagoCreateSerializer(serializers.Serializer):
-    orden = serializers.PrimaryKeyRelatedField(queryset=Orden.objects.all())
-    class Meta:
-        model = Pago
-        fields = ['orden']
+        fields = ['id', 'material_id', 'cantidad', 'estado', 'case_bonita_id', 'created_at', 'updated_at', 'fecha_prevista', 'deposito_encargado_id', 'solicitante_username']
 
 class TakeReservaSerializer(serializers.Serializer):
-    deposito_id = serializers.IntegerField()
+    deposito_encargado_id = serializers.IntegerField()
     class Meta:
-        fields = ['deposito_id']
+        fields = ['deposito_encargado_id']
